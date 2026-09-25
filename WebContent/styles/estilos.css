@@ -1,0 +1,84 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 8/09/2026, 11:12:38 AM
+    Author     : Mauricio Flores
+*/
+
+body {
+  background-color: #ECECEC;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.ventana {
+  width: 600px;
+  margin: 40px auto;
+  border: 2px solid #4472C4;
+  border-radius: 6px;
+  background-color: #F0F4FA;
+}
+
+.titulo {
+  background: linear-gradient(#5B8DEF, #2F5FBF);
+  color: white;
+  padding: 6px 10px;
+  font-weight: bold;
+  border-radius: 4px 4px 0 0;
+}
+
+.tabs {
+  margin: 10px 10px 0 10px;
+}
+
+.tab {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 1px solid #999;
+  border-bottom: none;
+  background-color: #E0E0E0;
+  cursor: default;
+}
+
+.tab.activo {
+  background-color: #FFFFFF;
+  font-weight: bold;
+}
+
+.contenido {
+  border: 1px solid #999;
+  background-color: #FFFFFF;
+  margin: 0 10px 15px 10px;
+  padding: 20px;
+}
+
+.fila {
+  margin-bottom: 14px;
+}
+
+label.campo {
+  display: inline-block;
+  min-width: 110px;
+}
+
+input[type="button"], .btn-etiqueta {
+  background-color: #E1E1E1;
+  border: 1px solid #ADADAD;
+  padding: 4px 10px;
+  font-family: inherit;
+}
+
+input[type="text"] {
+  padding: 3px;
+}
+
+.aceptar {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.aceptar input {
+  padding: 5px 20px;
+}
