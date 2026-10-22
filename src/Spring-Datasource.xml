@@ -11,8 +11,19 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
     </bean>
  
     <bean id="servicioPropiedades" class="dominio.BDMySql">
-      <property name="urlBD" value="${urlBD}"> </property>
-      <property name="user" value="${user}"> </property>
-      <property name="password" value="${password}"> </property>      
+      <property name="urlBD" value="${urlBD}" />
+      <property name="user" value="${user}" />
+      <property name="password" value="${password}" />
+    </bean>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+      <property name="driverClassName" value="${driverClassName}" />
+      <property name="url" value="${urlBD}" />
+      <property name="username" value="${user}" />
+      <property name="password" value="${password}" />
+    </bean>
+
+    <bean id="usuariosJDBCTemplate" class="baseDeDatos.UsuariosJDBCTemplate">
+      <property name="dataSource" ref="dataSource" />
     </bean>
 </beans>

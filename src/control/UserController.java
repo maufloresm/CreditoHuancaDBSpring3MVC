@@ -1,5 +1,6 @@
 package control;
 
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,59 +10,81 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 import baseDeDatos.UsuariosJDBCTemplate;
-import dominio.User;
+import dominio.CreditoForm;
+import dominio.PagoTarjeta;
 import servicio.UserService;
 import validator.UserValidator;
 
-
 @Controller
-@RequestMapping( "/userRegistration.htm" )
-@SessionAttributes("user")
-
 public class UserController {
 
-	private UserService userService;
-	private UserValidator userValidator;
- 
-	@Autowired
-	public UserController( UserService userService, UserValidator userValidator ) {
-		this.userService = userService;
-		this.userValidator = userValidator;
-	}
-	 
-	@RequestMapping( method = RequestMethod.GET )
-	public String showUserForm( ModelMap model, HttpServletRequest request ) {
-		User user = new User();
-		model.addAttribute( "user", user );
-		return "userForm";
-	}
+    private static final int MAX_INTENTOS = 5;
 
-	@RequestMapping( method = RequestMethod.POST )
-	public String onSubmit( @ModelAttribute("user") User user, BindingResult result , HttpServletRequest request ) 
-	 {
-		int MaxIntentos = 6;
-		userValidator.validate( user, result );
-		if ( result.hasErrors() ) 
-			return "userForm";
-	   else {
-			
-			String formulario = "";
-			final String userIpAddress = request.getRemoteAddr();
-	        System.out.println( "User IpAddress: " + userIpAddress );
-	        UsuariosJDBCTemplate reg = new UsuariosJDBCTemplate();
-	        reg.addIntento( userIpAddress );
-	        if ( reg.getIntentos(userIpAddress) >= MaxIntentos )
-	            formulario = "Exceso";	          
-	        else
-	          {
-	        	userService.add( user );
-	        	formulario = "redirect:userSuccess.htm";
-	          }			
-			return formulario;
-		 }
-	}
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserValidator userValidator;
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setUserValidator(UserValidator userValidator) {
+        this.userValidator = userValidator;
+    }
+
+    @RequestMapping(value = {"/credito.htm", "/userRegistration.htm"}, method = RequestMethod.GET)
+    public String showForm(HttpServletRequest request, ModelMap model) {
+        String clientIp = request.getRemoteAddr();
+        UsuariosJDBCTemplate dao = new UsuariosJDBCTemplate();
+        int intentos = dao.getIntentos(clientIp);
+
+        if (intentos >= MAX_INTENTOS) {
+            return "Exceso";
+        }
+
+        CreditoForm creditoForm = new CreditoForm();
+        // Cargar los pagos existentes en la base de datos (o iniciales si está vacía)
+        List<PagoTarjeta> filasPagos = userService.obtenerPagos();
+        creditoForm.setPagosTarjetas(filasPagos);
+
+        model.addAttribute("creditoForm", creditoForm);
+        model.addAttribute("user", creditoForm);
+
+        return "userForm";
+    }
+
+    @RequestMapping(value = {"/credito.htm", "/userRegistration.htm"}, method = RequestMethod.POST)
+    public String onSubmit(HttpServletRequest request,
+                           @ModelAttribute("creditoForm") CreditoForm creditoForm,
+                           BindingResult result,
+                           ModelMap model) {
+
+        String clientIp = request.getRemoteAddr();
+        UsuariosJDBCTemplate dao = new UsuariosJDBCTemplate();
+        int intentos = dao.getIntentos(clientIp);
+
+        if (intentos >= MAX_INTENTOS) {
+            return "Exceso";
+        }
+
+        userValidator.validate(creditoForm, result);
+
+        if (result.hasErrors()) {
+            model.addAttribute("user", creditoForm);
+            return "userForm";
+        }
+
+        // Registrar crédito y pagos en BD
+        userService.registrarCredito(creditoForm);
+        dao.addIntento(clientIp);
+
+        model.addAttribute("creditoForm", creditoForm);
+        model.addAttribute("user", creditoForm);
+
+        return "userSuccess";
+    }
 }
-

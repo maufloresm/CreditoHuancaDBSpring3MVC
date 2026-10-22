@@ -1,84 +1,39 @@
 package validator;
 
-import java.math.BigDecimal;
-
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
-
-import dominio.User;
+import dominio.CreditoForm;
 
 public class UserValidator implements Validator {
 
-	@Override
-	public boolean supports( Class<?> clazz ) {
-		//just validate the User instances
-		return User.class.isAssignableFrom( clazz );
-     }
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return CreditoForm.class.equals(clazz);
+    }
 
-	// Regresa true si la cadena es un numero decimal mayor que cero
-	private boolean esNumeroPositivo( String valor ) {
-		try {
-			return new BigDecimal( valor.trim() ).compareTo( BigDecimal.ZERO ) > 0;
-		} catch( Exception e ) {
-			return false;
-		}
-	}
+    @Override
+    public void validate(Object target, Errors errors) {
+        CreditoForm form = (CreditoForm) target;
 
-	// Regresa true si la cadena tiene formato de fecha yyyy-MM-dd valida
-	private boolean esFecha( String valor ) {
-		try {
-			java.sql.Date.valueOf( valor.trim() );
-			return true;
-		} catch( Exception e ) {
-			return false;
-		}
-	}
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "fecha", "required.fecha", "La fecha es obligatoria.");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "moneda", "required.moneda", "Especifique el tipo de moneda.");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "fechaVencimiento", "required.fechaVencimiento", "La fecha de vencimiento es obligatoria.");
 
-	@Override
-	public void validate( Object target, Errors errors ) {
+        if (form.getMonto() == null || form.getMonto() <= 0) {
+            errors.rejectValue("monto", "invalid.monto", "Ingrese un monto válido mayor a 0.");
+        }
 
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "fecha", "fecha.required" );
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "monto", "monto.required" );
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "periodo", "periodo.required" );
-		ValidationUtils.rejectIfEmpty( errors, "moneda", "moneda.required" );
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "cuota", "cuota.required" );
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "tea", "tea.required" );
-		ValidationUtils.rejectIfEmptyOrWhitespace( errors, "fechaVencimiento", "fechaVencimiento.required" );
+        if (form.getPeriodo() == null || form.getPeriodo() <= 0) {
+            errors.rejectValue("periodo", "invalid.periodo", "Ingrese un periodo en meses válido.");
+        }
 
-		User credito = (User) target;
+        if (form.getCuota() == null || form.getCuota() <= 0) {
+            errors.rejectValue("cuota", "invalid.cuota", "Ingrese el valor de la cuota.");
+        }
 
-		if ( !errors.hasFieldErrors( "fecha" ) && !esFecha( credito.getFecha() ))
-			errors.rejectValue( "fecha", "fecha.invalida" );
-
-		if ( !errors.hasFieldErrors( "monto" ) && !esNumeroPositivo( credito.getMonto() ))
-			errors.rejectValue( "monto", "monto.invalido" );
-
-		if ( !errors.hasFieldErrors( "periodo" ) ) {
-			try {
-				if ( Integer.parseInt( credito.getPeriodo().trim() ) <= 0 )
-					errors.rejectValue( "periodo", "periodo.invalido" );
-			} catch( NumberFormatException e ) {
-				errors.rejectValue( "periodo", "periodo.invalido" );
-			}
-		}
-
-		if ( !errors.hasFieldErrors( "moneda" )
-				&& !"Soles".equals( credito.getMoneda() ) && !"Dolares".equals( credito.getMoneda() ))
-			errors.rejectValue( "moneda", "moneda.required" );
-
-		if ( !errors.hasFieldErrors( "cuota" ) && !esNumeroPositivo( credito.getCuota() ))
-			errors.rejectValue( "cuota", "cuota.invalida" );
-
-		if ( !errors.hasFieldErrors( "tea" ) && !esNumeroPositivo( credito.getTea() ))
-			errors.rejectValue( "tea", "tea.invalida" );
-
-		if ( !errors.hasFieldErrors( "fechaVencimiento" ) ) {
-			if ( !esFecha( credito.getFechaVencimiento() ))
-				errors.rejectValue( "fechaVencimiento", "fechaVencimiento.invalida" );
-			else if ( !errors.hasFieldErrors( "fecha" )
-					&& credito.getFechaVencimiento().trim().compareTo( credito.getFecha().trim() ) <= 0 )
-				errors.rejectValue( "fechaVencimiento", "fechaVencimiento.anterior" );
-		}
-	}
+        if (form.getTea() == null || form.getTea() < 0) {
+            errors.rejectValue("tea", "invalid.tea", "Ingrese una TEA válida.");
+        }
+    }
 }

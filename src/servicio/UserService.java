@@ -1,8 +1,12 @@
 package servicio;
 
-import dominio.User;
-//import org.springframework.jdbc.core.RowMapper;
-public interface UserService {
+import java.util.List;
+import dominio.CreditoForm;
+import dominio.PagoTarjeta;
 
-	public void add( User user );
+public interface UserService {
+    void registrarCredito(CreditoForm credito);
+    void guardarPagos(List<PagoTarjeta> pagos);
+    List<PagoTarjeta> obtenerPagos();
+    List<PagoTarjeta> obtenerPagosIniciales();
 }
